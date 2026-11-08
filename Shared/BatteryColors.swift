@@ -3,6 +3,9 @@ import SwiftUI
 // MARK: - Battery Level Colors
 
 public struct BatteryColors {
+    /// 20 % and below use the low-battery red state, including the ring arc.
+    public static let lowBatteryThreshold = 0.2
+
     // Цветовые остановки для градиента
     public static func gradient(for level: Double) -> LinearGradient {
         if level > 0.5 {
@@ -10,7 +13,7 @@ public struct BatteryColors {
                 colors: [Color(hex: "30D158"), Color(hex: "26B94A")],
                 startPoint: .top, endPoint: .bottom
             )
-        } else if level > 0.2 {
+        } else if level > lowBatteryThreshold {
             return LinearGradient(
                 colors: [Color(hex: "FFD60A"), Color(hex: "FFB800")],
                 startPoint: .top, endPoint: .bottom
@@ -26,22 +29,24 @@ public struct BatteryColors {
     public static func solidColor(for level: Double) -> Color {
         if level > 0.5 {
             return Color(hex: "30D158")
-        } else if level > 0.2 {
+        } else if level > lowBatteryThreshold {
             return Color(hex: "FFD60A")
         } else {
             return Color(hex: "FF453A")
         }
     }
 
-    public static func isLow(_ level: Double) -> Bool { level <= 0.2 }
+    public static func isLow(_ level: Double) -> Bool { level <= lowBatteryThreshold }
     public static func isCritical(_ level: Double) -> Bool { level <= 0.1 }
 
-    /// The system Batteries widget keeps the progress arc green even at a low
-    /// percentage (the reference screenshot shows a green ring at 29%). The
-    /// color is therefore not derived from the battery level.
+    /// The system Batteries widget keeps the arc green at normal levels. At
+    /// 20 % and below, the ring switches to the same system-red palette as the
+    /// other low-battery indicators.
     public static func ringGradient(for level: Double) -> LinearGradient {
         LinearGradient(
-            colors: [Color(hex: "30D158"), Color(hex: "26B94A")],
+            colors: isLow(level)
+                ? [systemRed, ringLowStart]
+                : [systemGreen, ringStart],
             startPoint: .topLeading, endPoint: .bottomTrailing
         )
     }
@@ -55,6 +60,21 @@ public struct BatteryColors {
     public static let ringEnd = systemGreen
     public static let ringTip = systemGreen
 
+    /// The system red used by the existing low-battery indicators. The arc
+    /// starts slightly darker and reaches this exact value at the tip.
+    public static let systemRed = Color(hex: "FF453A")
+    public static let ringLowStart = Color(hex: "FF2D20")
+    public static let ringLowMiddle = systemRed
+    public static let ringLowEnd = systemRed
+
+    public static func ringStartColor(for level: Double) -> Color {
+        isLow(level) ? ringLowStart : ringStart
+    }
+
+    public static func ringEndColor(for level: Double) -> Color {
+        isLow(level) ? ringLowEnd : ringEnd
+    }
+
     /// The progress arc uses an angular gradient. The beginning of the arc is
     /// dark and it gets lighter clockwise, so the bright end always sits at
     /// the current level. At 100 % the bright tip overlaps the dark beginning
@@ -62,26 +82,30 @@ public struct BatteryColors {
     public static func ringArcGradient(for level: Double) -> AngularGradient {
         let fraction = min(max(level, 0.001), 1.0)
         return AngularGradient(
-            gradient: Gradient(stops: ringGradientStops),
+            gradient: Gradient(stops: ringGradientStops(for: level)),
             center: .center,
             startAngle: .degrees(0),
             endAngle: .degrees(360 * fraction)
         )
     }
 
-    static var ringGradientStops: [Gradient.Stop] {
-        [
-            .init(color: ringStart, location: 0.0),
-            .init(color: ringStart.opacity(0.96), location: 0.18),
-            .init(color: ringMiddle, location: 0.52),
-            .init(color: ringMiddle.opacity(0.98), location: 0.72),
-            .init(color: ringEnd, location: 0.94),
-            .init(color: ringEnd, location: 1.0)
+    static func ringGradientStops(for level: Double) -> [Gradient.Stop] {
+        let low = isLow(level)
+        let start = low ? ringLowStart : ringStart
+        let middle = low ? ringLowMiddle : ringMiddle
+        let end = low ? ringLowEnd : ringEnd
+        return [
+            .init(color: start, location: 0.0),
+            .init(color: start.opacity(0.96), location: 0.18),
+            .init(color: middle, location: 0.52),
+            .init(color: middle.opacity(0.98), location: 0.72),
+            .init(color: end, location: 0.94),
+            .init(color: end, location: 1.0)
         ]
     }
 
     public static func ringGlow(for level: Double) -> Color {
-        systemGreen
+        isLow(level) ? ringLowEnd : systemGreen
     }
 }
 
@@ -204,7 +228,7 @@ public struct BatteryRingView: View {
                 if let info, info.batteryLevel > 0.001 {
                     let level = min(max(info.batteryLevel, 0), 1)
                     let fraction = min(max(level, 0.001), 1)
-                    let stops = BatteryColors.ringGradientStops.map {
+                    let stops = BatteryColors.ringGradientStops(for: level).map {
                         Gradient.Stop(
                             color: $0.color,
                             location: min($0.location * fraction, fraction)
@@ -215,7 +239,7 @@ public struct BatteryRingView: View {
                     // this cap the track shows through the seam at 12 o'clock,
                     // especially when the ring reaches 100 %.
                     BatteryRingStartCap(lineWidth: lineWidth)
-                        .fill(BatteryColors.ringStart)
+                        .fill(BatteryColors.ringStartColor(for: level))
                         .padding(lineWidth / 2)
 
                     // Draw the arc as a Shape instead of a Canvas. On current
@@ -235,10 +259,10 @@ public struct BatteryRingView: View {
                         .padding(lineWidth / 2)
 
                     BatteryRingTipCap(level: level, lineWidth: lineWidth)
-                        .fill(BatteryColors.ringEnd)
+                        .fill(BatteryColors.ringEndColor(for: level))
                         .padding(lineWidth / 2)
                         .shadow(
-                            color: BatteryColors.ringEnd.opacity(0.24),
+                            color: BatteryColors.ringEndColor(for: level).opacity(0.24),
                             radius: lineWidth * 0.28,
                             x: 0,
                             y: 0
@@ -344,7 +368,7 @@ private struct BatteryRingStartCap: Shape {
 
 /// A semi-circular cap that continues the stroke past its end. Unlike a full
 /// circle it only rounds the tip; at 100 % the small rounded end sits on top of
-/// the dark beginning of the ring. The soft shadow helps the two greens meet
+/// the dark beginning of the ring. The soft shadow helps the two ends meet
 /// without a hard seam.
 private struct BatteryRingTipCap: Shape {
     let level: Double
