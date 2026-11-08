@@ -111,7 +111,8 @@ BatteryWidget/
    ./scripts/configure.sh com.yourprefix
    ```
    Либо вручную измените `BUNDLE_ID_PREFIX` в `project.yml`. Один префикс
-   используется для bundle ID, App Group и Keychain access group.
+   используется для bundle ID, App Group, Keychain access group и общего
+   namespace Keychain/виджетов.
 2. Выберите свою Team в Xcode для всех четырёх targets. Team ID не нужно
    записывать в репозиторий — его можно передавать в `xcodebuild` через
    `DEVELOPMENT_TEAM=...`.

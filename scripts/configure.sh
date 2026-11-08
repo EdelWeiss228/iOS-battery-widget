@@ -14,7 +14,8 @@ Usage:
   ./scripts/configure.sh com.yourname
   BUNDLE_ID_PREFIX=com.yourname ./scripts/configure.sh
 
-The prefix is used for bundle IDs, the App Group and the Keychain group.
+The prefix is used for bundle IDs, the App Group, the Keychain group and the
+shared Keychain service namespace.
 Use a reverse-DNS prefix that you own. Do not put your Team ID or email in
 project.yml; select your Team in Xcode instead.
 USAGE

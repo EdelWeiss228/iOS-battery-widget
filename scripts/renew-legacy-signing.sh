@@ -34,7 +34,7 @@ if [[ ! "$LEGACY_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
     exit 2
 fi
 
-for tool in xcodebuild xcrun rsync perl; do
+for tool in xcodebuild xcrun rsync; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "renew-legacy-signing: required tool not found: $tool" >&2
         exit 2
@@ -64,12 +64,9 @@ rsync -a \
     --exclude='.DS_Store' \
     ./ "$tmp/"
 
-# Hardcoded generic strings in Swift are the keychain service names, local
-# snapshot service and widget kind. Replace them only in the throwaway copy so
-# the existing legacy app keeps reading its old data.
-find "$tmp/Shared" "$tmp/iOSWidget" "$tmp/macOSWidget" \
-    -type f -name '*.swift' \
-    -exec perl -pi -e "s/com\\.example/${LEGACY_BUNDLE_PREFIX}/g" {} +
+# The Keychain service namespace is expanded from BUNDLE_ID_PREFIX in the
+# generated Info.plist, so the legacy build keeps its old data without editing
+# Swift sources.
 
 echo "Building with legacy identifiers (developer data stays local)..."
 build_log="$tmp/build.log"
@@ -98,6 +95,13 @@ fi
 actual_app_id=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")
 if [[ "$actual_app_id" != "$expected_app_id" ]]; then
     echo "renew-legacy-signing: unexpected app ID: $actual_app_id (expected $expected_app_id)" >&2
+    exit 1
+fi
+
+expected_service_prefix="${LEGACY_BUNDLE_PREFIX}.batterywidget"
+actual_service_prefix=$(/usr/libexec/PlistBuddy -c 'Print :BatteryServicePrefix' "$app/Info.plist")
+if [[ "$actual_service_prefix" != "$expected_service_prefix" ]]; then
+    echo "renew-legacy-signing: unexpected BatteryServicePrefix in built app" >&2
     exit 1
 fi
 

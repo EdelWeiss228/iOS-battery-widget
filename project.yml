@@ -13,7 +13,8 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     CODE_SIGN_STYLE: Automatic
     # Change this one value to your own reverse-DNS prefix. Keep it unique:
-    # it is used for bundle IDs, the App Group and the Keychain access group.
+    # it is used for bundle IDs, the App Group, the Keychain access group and
+    # the shared Keychain service namespace.
     BUNDLE_ID_PREFIX: com.example
 
 packages: {}
@@ -33,6 +34,7 @@ targets:
         CFBundleShortVersionString: "1.1"
         CFBundleVersion: "2"
         BatteryAppGroup: "group.$(BUNDLE_ID_PREFIX).batterywidget"
+        BatteryServicePrefix: "$(BUNDLE_ID_PREFIX).batterywidget"
         UIBackgroundModes: [fetch, network-authentication, bluetooth-central]
         UILaunchStoryboardName: ""
         BatteryKeychainAccessGroup: "$(DEVELOPMENT_TEAM).$(BUNDLE_ID_PREFIX).batterywidget.shared"
@@ -67,6 +69,7 @@ targets:
         CFBundleShortVersionString: "1.1"
         CFBundleVersion: "2"
         BatteryAppGroup: "group.$(BUNDLE_ID_PREFIX).batterywidget"
+        BatteryServicePrefix: "$(BUNDLE_ID_PREFIX).batterywidget"
         BatteryKeychainAccessGroup: "$(DEVELOPMENT_TEAM).$(BUNDLE_ID_PREFIX).batterywidget.shared"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
@@ -94,6 +97,7 @@ targets:
         CFBundleShortVersionString: "1.1"
         CFBundleVersion: "2"
         BatteryAppGroup: "group.$(BUNDLE_ID_PREFIX).batterywidget"
+        BatteryServicePrefix: "$(BUNDLE_ID_PREFIX).batterywidget"
         BatteryKeychainAccessGroup: "$(DEVELOPMENT_TEAM).$(BUNDLE_ID_PREFIX).batterywidget.shared"
         NSBluetoothAlwaysUsageDescription: "Чтобы показывать заряд наушников и часов, подключённых к Mac"
         NSLocalNetworkUsageDescription: "Для синхронизации заряда с iPhone через локальную сеть"
@@ -127,6 +131,7 @@ targets:
         CFBundleShortVersionString: "1.1"
         CFBundleVersion: "2"
         BatteryAppGroup: "group.$(BUNDLE_ID_PREFIX).batterywidget"
+        BatteryServicePrefix: "$(BUNDLE_ID_PREFIX).batterywidget"
         BatteryKeychainAccessGroup: "$(DEVELOPMENT_TEAM).$(BUNDLE_ID_PREFIX).batterywidget.shared"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension

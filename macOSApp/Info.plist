@@ -6,6 +6,8 @@
 	<string>group.$(BUNDLE_ID_PREFIX).batterywidget</string>
 	<key>BatteryKeychainAccessGroup</key>
 	<string>$(DEVELOPMENT_TEAM).$(BUNDLE_ID_PREFIX).batterywidget.shared</string>
+	<key>BatteryServicePrefix</key>
+	<string>$(BUNDLE_ID_PREFIX).batterywidget</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>

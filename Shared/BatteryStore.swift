@@ -30,12 +30,19 @@ public enum BatterySharedStore {
     }
     public static let devicesKey = "devices"
 
-    /// Keychain items are namespaced by the App Group rather than hardcoded.
-    /// This keeps a build that uses a custom/legacy bundle prefix on the same
-    /// iCloud Keychain records as the other device. Hardcoded identifiers made
-    /// a Mac test build read `com.example…` while the iPhone read the legacy
-    /// prefix, so the two devices silently stopped seeing each other.
+    /// Keychain items and widget kinds are namespaced by an explicit Info.plist
+    /// value rather than by a bundle ID or the App Group. The value is derived
+    /// from `BUNDLE_ID_PREFIX` in project.yml, so a template user still edits
+    /// one setting, while the legacy signing flow can override that setting
+    /// without rewriting Swift sources.
     private static var servicePrefix: String {
+        if let prefix = Bundle.main.object(forInfoDictionaryKey: "BatteryServicePrefix") as? String,
+           !prefix.isEmpty,
+           !prefix.contains("$(") {
+            return prefix
+        }
+
+        // Backward-compatible fallback for builds made before the explicit key.
         let group = appGroup
         if group.hasPrefix("group.") {
             return String(group.dropFirst("group.".count))
