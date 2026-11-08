@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode user/project state
+**/xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+DerivedData/
+build/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager / XcodeGen output
+.build/
+.swiftpm/
+
+# Local configuration and secrets
+.env
+.env.*
+Config.local.xcconfig
+*.local.xcconfig
+*.p12
+*.pem
+*.key
+*.mobileprovision
+*.provisionprofile
