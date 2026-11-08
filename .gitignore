@@ -22,6 +22,8 @@ build/
 # Local configuration and secrets
 .env
 .env.*
+.local/
+*.local.env
 Config.local.xcconfig
 *.local.xcconfig
 *.p12

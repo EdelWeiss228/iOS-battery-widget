@@ -22,6 +22,13 @@ iPhone и Mac может заменить его системной подлож
 
 ---
 
+## Скриншоты
+
+<p align="center">
+  <a href="Docs/screenshots/widgets-green.png"><img src="Docs/screenshots/widgets-green.png" width="49%" alt="Виджеты BatteryWidget — зелёный акцент"></a>
+  <a href="Docs/screenshots/widgets-white.png"><img src="Docs/screenshots/widgets-white.png" width="49%" alt="Виджеты BatteryWidget — белый акцент"></a>
+</p>
+
 ## Возможности
 
 - **iOS App** — карточка Liquid Glass с динамическим рядом устройств.
@@ -81,10 +88,15 @@ BatteryWidget/
 │   ├── BatterySyncManager.swift   — объединение Bonjour + Keychain
 │   ├── BonjourSyncManager.swift   — локальная сеть
 │   └── IOKitBatteryReader.swift   — заряд Mac
+├── Docs/screenshots/              — примеры виджетов
 ├── iOSApp/
 ├── iOSWidget/
 ├── macOSApp/
 ├── macOSWidget/
+├── scripts/
+│   ├── configure.sh               — настройка bundle-префикса
+│   ├── check-personal-data.sh     — проверка перед коммитом
+│   └── renew-legacy-signing.sh    — пересборка legacy-подписи
 ├── project.yml                    — спецификация XcodeGen
 └── setup.sh
 ```
@@ -188,6 +200,29 @@ xcrun devicectl device process launch \
 Аккумуляторы**. Если приложение не открывается, разрешите разработчика в
 **Настройки → Основные → VPN и управление устройством**; Developer Mode
 включается в **Настройки → Конфиденциальность и безопасность**.
+
+### Пересборка legacy-подписи
+
+Если у старой установки другой bundle ID и нужно обновить provisioning profile,
+не меняя данные приложения, создайте локальный `.local/legacy.env` (он
+игнорируется Git):
+
+```bash
+LEGACY_BUNDLE_PREFIX=com.yourprefix
+LEGACY_TEAM_ID=YOUR_TEAM_ID
+LEGACY_DEVICE_UDID=UDID_IPHONE
+```
+
+Затем запустите:
+
+```bash
+./scripts/renew-legacy-signing.sh
+```
+
+Скрипт собирает временную копию проекта, подставляет legacy-префикс, обновляет
+профиль через Xcode, устанавливает приложение поверх старого и запускает его.
+Рабочий каталог и публичный репозиторий не меняются. Для Personal Team профиль
+живёт 7 дней, поэтому процедуру нужно повторять перед истечением срока.
 
 ### Если на macOS не появился large
 
