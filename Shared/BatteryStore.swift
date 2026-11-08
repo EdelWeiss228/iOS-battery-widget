@@ -30,12 +30,44 @@ public enum BatterySharedStore {
     }
     public static let devicesKey = "devices"
 
-    private static let keychainService = "com.example.batterywidget.sync"
+    /// Keychain items are namespaced by the App Group rather than hardcoded.
+    /// This keeps a build that uses a custom/legacy bundle prefix on the same
+    /// iCloud Keychain records as the other device. Hardcoded identifiers made
+    /// a Mac test build read `com.example…` while the iPhone read the legacy
+    /// prefix, so the two devices silently stopped seeing each other.
+    private static var servicePrefix: String {
+        let group = appGroup
+        if group.hasPrefix("group.") {
+            return String(group.dropFirst("group.".count))
+        }
+        return group
+    }
+
+    private static var keychainService: String {
+        servicePrefix + ".sync"
+    }
+
     private static let keychainLabel = "Battery Widget device state"
     private static let keychainAccountPrefix = "device."
     private static let deviceIDPrefix = "batteryDeviceID."
     private static let snapshotFileName = "devices.json"
-    private static let localSnapshotService = "com.example.batterywidget.local-snapshot"
+
+    private static var localSnapshotService: String {
+        servicePrefix + ".local-snapshot"
+    }
+
+    /// WidgetKit kinds must stay stable across app updates. Older builds used
+    /// the legacy prefix for the kind, not the template `com.example` value,
+    /// so an already-placed widget would otherwise remain orphaned after an
+    /// update.
+    public static var widgetKind: String {
+        servicePrefix
+    }
+
+    public static var macWidgetKind: String {
+        servicePrefix + ".mac"
+    }
+
     private static let localSnapshotAccount = "devices"
 
     // MARK: UserDefaults / shared snapshot

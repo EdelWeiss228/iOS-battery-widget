@@ -35,7 +35,7 @@ struct BatteryTimelineProvider: TimelineProvider {
 @main
 struct BatteryWidgetBundle: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "com.example.batterywidget", provider: BatteryTimelineProvider()) { entry in
+        StaticConfiguration(kind: BatterySharedStore.widgetKind, provider: BatteryTimelineProvider()) { entry in
             BatteryWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
                     // Kept as a containerBackground so WidgetKit doesn’t show

@@ -31,7 +31,7 @@ struct MacBatteryTimelineProvider: TimelineProvider {
 @main
 struct MacBatteryWidgetBundle: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "com.example.batterywidget.mac", provider: MacBatteryTimelineProvider()) { entry in
+        StaticConfiguration(kind: BatterySharedStore.macWidgetKind, provider: MacBatteryTimelineProvider()) { entry in
             MacBatteryWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
                     BatteryWidgetBackground()
