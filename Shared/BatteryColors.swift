@@ -6,6 +6,14 @@ public struct BatteryColors {
     /// 20 % and below use the low-battery red state, including the ring arc.
     public static let lowBatteryThreshold = 0.2
 
+    // The UI displays a rounded percentage. A raw level such as 0.204 still
+    // reads as 20 % in the widget, so the low-battery state must use that same
+    // rounded value instead of comparing the raw fraction with `<= 0.2`.
+    private static func displayedPercent(for level: Double) -> Int? {
+        guard level.isFinite else { return nil }
+        return Int((level * 100).rounded())
+    }
+
     // Цветовые остановки для градиента
     public static func gradient(for level: Double) -> LinearGradient {
         if level > 0.5 {
@@ -13,14 +21,14 @@ public struct BatteryColors {
                 colors: [Color(hex: "30D158"), Color(hex: "26B94A")],
                 startPoint: .top, endPoint: .bottom
             )
-        } else if level > lowBatteryThreshold {
+        } else if isLow(level) {
             return LinearGradient(
-                colors: [Color(hex: "FFD60A"), Color(hex: "FFB800")],
+                colors: [Color(hex: "FF453A"), Color(hex: "FF2D20")],
                 startPoint: .top, endPoint: .bottom
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "FF453A"), Color(hex: "FF2D20")],
+                colors: [Color(hex: "FFD60A"), Color(hex: "FFB800")],
                 startPoint: .top, endPoint: .bottom
             )
         }
@@ -29,15 +37,24 @@ public struct BatteryColors {
     public static func solidColor(for level: Double) -> Color {
         if level > 0.5 {
             return Color(hex: "30D158")
-        } else if level > lowBatteryThreshold {
-            return Color(hex: "FFD60A")
-        } else {
+        } else if isLow(level) {
             return Color(hex: "FF453A")
+        } else {
+            return Color(hex: "FFD60A")
         }
     }
 
-    public static func isLow(_ level: Double) -> Bool { level <= lowBatteryThreshold }
-    public static func isCritical(_ level: Double) -> Bool { level <= 0.1 }
+    /// `20 %` means the percentage the UI shows. This keeps 20.4 % red even
+    /// though the raw fraction is greater than 0.2.
+    public static func isLow(_ level: Double) -> Bool {
+        guard let percent = displayedPercent(for: level) else { return false }
+        return percent <= Int((lowBatteryThreshold * 100).rounded())
+    }
+
+    public static func isCritical(_ level: Double) -> Bool {
+        guard let percent = displayedPercent(for: level) else { return false }
+        return percent <= 10
+    }
 
     /// The system Batteries widget keeps the arc green at normal levels. At
     /// 20 % and below, the ring switches to the same system-red palette as the
