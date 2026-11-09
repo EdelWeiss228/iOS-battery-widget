@@ -7,6 +7,8 @@ import IOKit.ps
 @main
 struct BatteryMacApp: App {
     @StateObject private var vm: MacBatteryViewModel
+    @AppStorage(MenuBarDisplayMode.storageKey)
+    private var menuBarMode: MenuBarDisplayMode = .iconAndPercent
 
     init() {
         // Parent refreshes start this executable as a short-lived probe so the
@@ -29,14 +31,17 @@ struct BatteryMacApp: App {
             MenuBarContentView()
                 .environmentObject(vm)
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: vm.primaryDevice.batteryState.isCharging ? "bolt.fill" : "battery.\(vm.batteryIcon)")
-                    .foregroundStyle(BatteryColors.solidColor(for: vm.primaryDevice.batteryLevel))
-                Text("\(vm.primaryDevice.levelPercent)%")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-            }
+            MenuBarBatteryLabel(
+                level: vm.primaryDevice.batteryLevel,
+                isCharging: vm.primaryDevice.batteryState.isCharging,
+                mode: menuBarMode
+            )
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            MenuBarSettingsView()
+        }
     }
 }
 
@@ -74,6 +79,14 @@ struct MenuBarContentView: View {
                     .foregroundStyle(.tertiary)
 
                 Spacer()
+
+                SettingsLink {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 12, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Параметры")
 
                 Button {
                     vm.refresh()

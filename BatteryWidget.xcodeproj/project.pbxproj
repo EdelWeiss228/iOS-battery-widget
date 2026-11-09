@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		1A57CECE463A3E0E1C02D28A /* IOKitBatteryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE217F5CDE2CC6642640896 /* IOKitBatteryReader.swift */; };
 		1E08FC60B7D12CD9A54A0A3D /* BatterySyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0CE4500CEA44074E001A711 /* BatterySyncManager.swift */; };
+		279C0D18CBC8BCD369C55029 /* MenuBarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495627E86DAA007355FD6906 /* MenuBarSettingsView.swift */; };
 		3749FA73350B9E190A46A7CB /* BatterySyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0CE4500CEA44074E001A711 /* BatterySyncManager.swift */; };
+		3B039E5855DD4E1986F7DAF7 /* MenuBarDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53989C6F6DC08D80B4568A00 /* MenuBarDisplayMode.swift */; };
 		400364D88E10DF48C2D23F29 /* IOKitBatteryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE217F5CDE2CC6642640896 /* IOKitBatteryReader.swift */; };
 		438E89C082793C38CC986E93 /* BatteryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C285AE3F6450FEB8FC114C /* BatteryWidget.swift */; };
 		444780B74B3776069F6D4FA5 /* BatteryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7DEF75CD35CA8E2D303E8C8 /* BatteryStore.swift */; };
@@ -30,6 +32,7 @@
 		BC820AF517E2285B1C8E81D1 /* BatteryColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316B5F0889E1F1E15ABF24AA /* BatteryColors.swift */; };
 		C753252ECF20621C4F5D8811 /* BatteryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8533FB6BB84F703EFE180CBC /* BatteryData.swift */; };
 		CA7EC8D3AF4262112453835E /* MacBatteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221EA4FA6764151BB34B712D /* MacBatteryViewModel.swift */; };
+		CE7FCA56028D385A4C3B2A2A /* MenuBarBatteryLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF5BA75B8DCF21C15722C87B /* MenuBarBatteryLabel.swift */; };
 		D438239893D1C8FF318E1A96 /* MacBatteryWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B8916A0DAD8589C8F7F69168 /* MacBatteryWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DBCFE81BA5EF75E512C28463 /* BatteryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7DEF75CD35CA8E2D303E8C8 /* BatteryStore.swift */; };
 		E01F59E93713587096AEC617 /* BatteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA603869AFACD4426A45E17E /* BatteryViewModel.swift */; };
@@ -93,6 +96,8 @@
 		35C40C50BA162563BC06E370 /* BonjourSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourSyncManager.swift; sourceTree = "<group>"; };
 		39C1C24D7F249DF8C91F1436 /* BatteryWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryWidget.entitlements; sourceTree = "<group>"; };
 		42ABCC2C7CBC2FB042DDCA44 /* BatteryMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryMac.entitlements; sourceTree = "<group>"; };
+		495627E86DAA007355FD6906 /* MenuBarSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarSettingsView.swift; sourceTree = "<group>"; };
+		53989C6F6DC08D80B4568A00 /* MenuBarDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarDisplayMode.swift; sourceTree = "<group>"; };
 		644D2A5110AB75B2825ED064 /* MacBatteryWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MacBatteryWidget.entitlements; sourceTree = "<group>"; };
 		8533FB6BB84F703EFE180CBC /* BatteryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryData.swift; sourceTree = "<group>"; };
 		8DFC55D8A6F8682D8FAAD89E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -104,6 +109,7 @@
 		B8916A0DAD8589C8F7F69168 /* MacBatteryWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MacBatteryWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3FB5BD72BE271ABF346E209 /* BatteryWidgetApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BatteryWidgetApp.entitlements; sourceTree = "<group>"; };
 		C9F00C18E429C5D923A06A2F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CF5BA75B8DCF21C15722C87B /* MenuBarBatteryLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarBatteryLabel.swift; sourceTree = "<group>"; };
 		DA603869AFACD4426A45E17E /* BatteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryViewModel.swift; sourceTree = "<group>"; };
 		DCE217F5CDE2CC6642640896 /* IOKitBatteryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOKitBatteryReader.swift; sourceTree = "<group>"; };
 		DF5F5CEF4F30678CA19F6C9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -165,6 +171,9 @@
 				990EF0CC610F4A21D07ACF98 /* BatteryMacApp.swift */,
 				8DFC55D8A6F8682D8FAAD89E /* Info.plist */,
 				221EA4FA6764151BB34B712D /* MacBatteryViewModel.swift */,
+				CF5BA75B8DCF21C15722C87B /* MenuBarBatteryLabel.swift */,
+				53989C6F6DC08D80B4568A00 /* MenuBarDisplayMode.swift */,
+				495627E86DAA007355FD6906 /* MenuBarSettingsView.swift */,
 			);
 			path = macOSApp;
 			sourceTree = "<group>";
@@ -345,6 +354,9 @@
 				87768FFF678C5F6C707FBE88 /* BonjourSyncManager.swift in Sources */,
 				400364D88E10DF48C2D23F29 /* IOKitBatteryReader.swift in Sources */,
 				CA7EC8D3AF4262112453835E /* MacBatteryViewModel.swift in Sources */,
+				CE7FCA56028D385A4C3B2A2A /* MenuBarBatteryLabel.swift in Sources */,
+				3B039E5855DD4E1986F7DAF7 /* MenuBarDisplayMode.swift in Sources */,
+				279C0D18CBC8BCD369C55029 /* MenuBarSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
