@@ -9,6 +9,8 @@ import SwiftUI
 struct MenuBarStatusLabel: View {
     @AppStorage(MenuBarDisplayMode.storageKey)
     private var mode: MenuBarDisplayMode = .iconAndPercent
+    @AppStorage(MenuBarBatteryTint.storageKey)
+    private var tint: MenuBarBatteryTint = .level
 
     let level: Double
     let isCharging: Bool
@@ -17,7 +19,8 @@ struct MenuBarStatusLabel: View {
         MenuBarBatteryLabel(
             level: level,
             isCharging: isCharging,
-            mode: mode
+            mode: mode,
+            tint: tint
         )
     }
 }
@@ -29,6 +32,7 @@ struct MenuBarBatteryLabel: View {
     let level: Double
     let isCharging: Bool
     let mode: MenuBarDisplayMode
+    let tint: MenuBarBatteryTint
 
     private var clampedLevel: Double {
         guard level.isFinite else { return 0 }
@@ -73,7 +77,8 @@ struct MenuBarBatteryLabel: View {
         let glyph = MenuBarBatteryGlyph(
             level: clampedLevel,
             isCharging: isCharging,
-            showsNumber: showsNumber
+            showsNumber: showsNumber,
+            tint: tint
         )
         let renderer = ImageRenderer(content: glyph)
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
@@ -111,6 +116,7 @@ private struct MenuBarBatteryGlyph: View {
     let level: Double
     let isCharging: Bool
     let showsNumber: Bool
+    let tint: MenuBarBatteryTint
 
     private let bodyHeight: CGFloat = 14
     private let inset: CGFloat = 1.5
@@ -126,11 +132,43 @@ private struct MenuBarBatteryGlyph: View {
     }
 
     private var statusColor: Color {
-        BatteryColors.solidColor(for: clampedLevel)
+        switch tint {
+        case .level:
+            return BatteryColors.solidColor(for: clampedLevel)
+        case .green:
+            return BatteryColors.systemGreen
+        case .white:
+            return .white
+        }
     }
 
-    private var fillStyle: LinearGradient {
-        BatteryColors.gradient(for: clampedLevel)
+    private var fillStyle: AnyShapeStyle {
+        switch tint {
+        case .level:
+            return AnyShapeStyle(BatteryColors.gradient(for: clampedLevel))
+        case .green:
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(hex: "54E878"), BatteryColors.systemGreen],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        case .white:
+            return AnyShapeStyle(Color.white)
+        }
+    }
+
+    private var usesDarkNumber: Bool {
+        tint == .white && clampedLevel >= 0.5
+    }
+
+    private var numberColor: Color {
+        usesDarkNumber ? .black : .white
+    }
+
+    private var numberShadow: Color {
+        usesDarkNumber ? .white.opacity(0.7) : .black.opacity(0.7)
     }
 
     private var innerWidth: CGFloat {
@@ -159,16 +197,16 @@ private struct MenuBarBatteryGlyph: View {
                 if isCharging && !showsNumber {
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.5), radius: 0.8)
+                        .foregroundStyle(numberColor)
+                        .shadow(color: numberShadow, radius: 0.8)
                 }
 
                 if showsNumber {
                     Text("\(Int((clampedLevel * 100).rounded()))")
                         .font(.system(size: 8.5, weight: .bold, design: .rounded))
                         .monospacedDigit()
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.7), radius: 0.8)
+                        .foregroundStyle(numberColor)
+                        .shadow(color: numberShadow, radius: 0.8)
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
                         .padding(.horizontal, 1.5)

@@ -5,6 +5,8 @@ import SwiftUI
 struct MenuBarSettingsView: View {
     @AppStorage(MenuBarDisplayMode.storageKey)
     private var mode: MenuBarDisplayMode = .iconAndPercent
+    @AppStorage(MenuBarBatteryTint.storageKey)
+    private var tint: MenuBarBatteryTint = .level
 
     var body: some View {
         Form {
@@ -23,6 +25,21 @@ struct MenuBarSettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            Section("Цвет батарейки") {
+                Picker("Цвет", selection: $tint) {
+                    ForEach(MenuBarBatteryTint.allCases) { option in
+                        Text(option.title)
+                            .tag(option)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+
+                Text(tint.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Section("Предпросмотр") {
                 HStack {
                     Text("Заряд 42 %")
@@ -30,7 +47,8 @@ struct MenuBarSettingsView: View {
                     MenuBarBatteryLabel(
                         level: 0.42,
                         isCharging: false,
-                        mode: mode
+                        mode: mode,
+                        tint: tint
                     )
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)

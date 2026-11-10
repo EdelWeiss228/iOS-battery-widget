@@ -2,6 +2,38 @@ import Foundation
 
 // MARK: - Menu-bar display mode
 
+enum MenuBarBatteryTint: String, CaseIterable, Identifiable, Hashable {
+    case level
+    case green
+    case white
+
+    static let storageKey = "menuBarBatteryTint"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .level:
+            return "По уровню"
+        case .green:
+            return "Зелёный"
+        case .white:
+            return "Белый"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .level:
+            return "Зелёный, жёлтый или красный в зависимости от заряда."
+        case .green:
+            return "Всегда зелёная заливка."
+        case .white:
+            return "Белая заливка, как у системной батарейки."
+        }
+    }
+}
+
 enum MenuBarDisplayMode: String, CaseIterable, Identifiable, Hashable {
     case iconAndPercent
     case batteryWithNumber
