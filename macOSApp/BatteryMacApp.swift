@@ -7,8 +7,6 @@ import IOKit.ps
 @main
 struct BatteryMacApp: App {
     @StateObject private var vm: MacBatteryViewModel
-    @AppStorage(MenuBarDisplayMode.storageKey)
-    private var menuBarMode: MenuBarDisplayMode = .iconAndPercent
 
     init() {
         // Parent refreshes start this executable as a short-lived probe so the
@@ -31,10 +29,9 @@ struct BatteryMacApp: App {
             MenuBarContentView()
                 .environmentObject(vm)
         } label: {
-            MenuBarBatteryLabel(
+            MenuBarStatusLabel(
                 level: vm.primaryDevice.batteryLevel,
-                isCharging: vm.primaryDevice.batteryState.isCharging,
-                mode: menuBarMode
+                isCharging: vm.primaryDevice.batteryState.isCharging
             )
         }
         .menuBarExtraStyle(.window)

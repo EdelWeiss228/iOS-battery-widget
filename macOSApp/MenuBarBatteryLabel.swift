@@ -1,6 +1,26 @@
+import AppKit
 import SwiftUI
 
 // MARK: - Menu-bar label
+
+/// `MenuBarExtra` does not reliably invalidate its label when the storage is
+/// observed by the app scene, so observe the selected mode inside the label
+/// itself. The Settings preview still uses `MenuBarBatteryLabel` directly.
+struct MenuBarStatusLabel: View {
+    @AppStorage(MenuBarDisplayMode.storageKey)
+    private var mode: MenuBarDisplayMode = .iconAndPercent
+
+    let level: Double
+    let isCharging: Bool
+
+    var body: some View {
+        MenuBarBatteryLabel(
+            level: level,
+            isCharging: isCharging,
+            mode: mode
+        )
+    }
+}
 
 /// The label used by `MenuBarExtra`. Every mode keeps the same text metrics and
 /// a fixed-size battery glyph so the status item does not jump when the user
@@ -24,31 +44,47 @@ struct MenuBarBatteryLabel: View {
             switch mode {
             case .iconAndPercent:
                 HStack(spacing: 4) {
-                    MenuBarBatteryGlyph(
-                        level: clampedLevel,
-                        isCharging: isCharging,
-                        showsNumber: false
-                    )
+                    batteryGlyph(showsNumber: false)
                     percentText
                 }
             case .batteryWithNumber:
-                MenuBarBatteryGlyph(
-                    level: clampedLevel,
-                    isCharging: isCharging,
-                    showsNumber: true
-                )
+                batteryGlyph(showsNumber: true)
             case .batteryOnly:
-                MenuBarBatteryGlyph(
-                    level: clampedLevel,
-                    isCharging: isCharging,
-                    showsNumber: false
-                )
+                batteryGlyph(showsNumber: false)
             case .percentOnly:
                 percentText
             }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
+    }
+
+    /// `MenuBarExtra` renders text in the status item, but custom shapes in a
+    /// composite label are ignored on macOS. Render the custom battery into an
+    /// image so the status item keeps the dynamic fill instead of showing only
+    /// its percentage text.
+    private func batteryGlyph(showsNumber: Bool) -> some View {
+        Image(nsImage: renderedBatteryGlyph(showsNumber: showsNumber))
+            .renderingMode(.original)
+            .accessibilityHidden(true)
+    }
+
+    private func renderedBatteryGlyph(showsNumber: Bool) -> NSImage {
+        let glyph = MenuBarBatteryGlyph(
+            level: clampedLevel,
+            isCharging: isCharging,
+            showsNumber: showsNumber
+        )
+        let renderer = ImageRenderer(content: glyph)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
+        guard let image = renderer.nsImage else {
+            return NSImage(
+                systemSymbolName: "battery.100",
+                accessibilityDescription: nil
+            ) ?? NSImage(size: NSSize(width: 30, height: 14))
+        }
+        image.isTemplate = false
+        return image
     }
 
     private var percentText: some View {
