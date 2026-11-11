@@ -120,14 +120,14 @@ private struct MenuBarBatteryGlyph: View {
 
     private let bodyHeight: CGFloat = 15
     private let capSpacing: CGFloat = 1.3
-    private let capWidth: CGFloat = 2.2
+    private let capWidth: CGFloat = 2.4
 
     private var bodyWidth: CGFloat {
-        28
+        27
     }
 
     private var bodyCornerRadius: CGFloat {
-        4.2
+        4.8
     }
 
     private var clampedLevel: Double {
@@ -181,8 +181,8 @@ private struct MenuBarBatteryGlyph: View {
                 }
 
             Capsule()
-                .fill(underlayColor)
-                .frame(width: capWidth, height: bodyHeight * 0.38)
+                .fill(fillColor)
+                .frame(width: capWidth, height: bodyHeight * 0.40)
         }
         .accessibilityHidden(true)
     }
@@ -205,7 +205,7 @@ private struct MenuBarBatteryGlyph: View {
         HStack(spacing: 1.2) {
             if showsNumber {
                 Text("\(displayedPercent)")
-                    .font(.system(size: 9.2, weight: .semibold, design: .rounded))
+                    .font(.system(size: 10.2, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
