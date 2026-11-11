@@ -20,6 +20,8 @@ struct BatteryMacApp: App {
             exit(0)
         }
 
+        MenuBarBatteryTint.migrateStoredSelectionIfNeeded()
+
         let model = MacBatteryViewModel()
         _vm = StateObject(wrappedValue: model)
     }

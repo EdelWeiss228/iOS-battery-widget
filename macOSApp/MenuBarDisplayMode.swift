@@ -3,9 +3,8 @@ import Foundation
 // MARK: - Menu-bar display mode
 
 enum MenuBarBatteryTint: String, CaseIterable, Identifiable, Hashable {
-    case level
-    case green
     case white
+    case green
 
     static let storageKey = "menuBarBatteryTint"
 
@@ -13,24 +12,28 @@ enum MenuBarBatteryTint: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
-        case .level:
-            return "По уровню"
-        case .green:
-            return "Зелёный"
         case .white:
             return "Белый"
+        case .green:
+            return "Зелёный"
         }
     }
 
     var detail: String {
         switch self {
-        case .level:
-            return "Зелёный, жёлтый или красный в зависимости от заряда."
-        case .green:
-            return "Всегда зелёная заливка."
         case .white:
-            return "Белая заливка, как у системной батарейки."
+            return "Белая заливка на светлой полупрозрачной подложке. На низком заряде становится красной."
+        case .green:
+            return "Зелёная заливка на светлой полупрозрачной подложке. На низком заряде становится красной."
         }
+    }
+
+    /// The previous alpha build exposed a third “По уровню” option that used
+    /// yellow. Yellow is deferred, so an existing selection is migrated to the
+    /// new default instead of leaving the menu bar on a removed value.
+    static func migrateStoredSelectionIfNeeded(defaults: UserDefaults = .standard) {
+        guard defaults.string(forKey: storageKey) == "level" else { return }
+        defaults.set(Self.white.rawValue, forKey: storageKey)
     }
 }
 

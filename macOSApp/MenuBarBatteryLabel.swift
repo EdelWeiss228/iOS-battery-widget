@@ -10,7 +10,7 @@ struct MenuBarStatusLabel: View {
     @AppStorage(MenuBarDisplayMode.storageKey)
     private var mode: MenuBarDisplayMode = .iconAndPercent
     @AppStorage(MenuBarBatteryTint.storageKey)
-    private var tint: MenuBarBatteryTint = .level
+    private var tint: MenuBarBatteryTint = .white
 
     let level: Double
     let isCharging: Bool
@@ -94,11 +94,9 @@ struct MenuBarBatteryLabel: View {
 
     private var percentText: some View {
         Text("\(percent)%")
-            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .font(.system(size: 13, weight: .medium, design: .rounded))
             .monospacedDigit()
-            .foregroundStyle(
-                BatteryColors.isLow(clampedLevel) ? BatteryColors.systemRed : Color.primary
-            )
+            .foregroundStyle(.white)
     }
 
     private var accessibilityLabel: String {
@@ -109,21 +107,27 @@ struct MenuBarBatteryLabel: View {
 
 // MARK: - Battery glyph
 
-/// A compact system-style battery with a dynamic fill. The empty part stays
-/// transparent, so the menu bar background shows through just like the system
-/// battery indicator.
+/// A compact reconstruction of the macOS 27 menu-bar battery. The body is a
+/// light, translucent underlay with the charged part painted on top. The
+/// number and bolt are knocked out of those layers instead of being drawn in a
+/// foreground color, so the menu-bar background shows through them exactly
+/// like it does in the system indicator.
 private struct MenuBarBatteryGlyph: View {
     let level: Double
     let isCharging: Bool
     let showsNumber: Bool
     let tint: MenuBarBatteryTint
 
-    private let bodyHeight: CGFloat = 14
-    private let inset: CGFloat = 1.5
+    private let bodyHeight: CGFloat = 15
     private let capSpacing: CGFloat = 1.3
+    private let capWidth: CGFloat = 2.2
 
     private var bodyWidth: CGFloat {
-        showsNumber ? 30 : 27
+        28
+    }
+
+    private var bodyCornerRadius: CGFloat {
+        4.2
     }
 
     private var clampedLevel: Double {
@@ -131,93 +135,88 @@ private struct MenuBarBatteryGlyph: View {
         return min(max(level, 0), 1)
     }
 
-    private var statusColor: Color {
+    private var displayedPercent: Int {
+        Int((clampedLevel * 100).rounded())
+    }
+
+    /// The system uses roughly 45 % white for the empty body on a dark menu
+    /// bar. The underlay is invisible at 100 % because the opaque fill covers
+    /// it completely.
+    private var underlayColor: Color {
+        Color.white.opacity(0.45)
+    }
+
+    private var fillColor: Color {
+        if BatteryColors.isLow(clampedLevel) {
+            return BatteryColors.systemRed
+        }
+
         switch tint {
-        case .level:
-            return BatteryColors.solidColor(for: clampedLevel)
+        case .white:
+            return Color(hex: "F5F6F7")
         case .green:
             return BatteryColors.systemGreen
-        case .white:
-            return .white
         }
     }
 
-    private var fillStyle: AnyShapeStyle {
-        switch tint {
-        case .level:
-            return AnyShapeStyle(BatteryColors.gradient(for: clampedLevel))
-        case .green:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [Color(hex: "54E878"), BatteryColors.systemGreen],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-        case .white:
-            return AnyShapeStyle(Color.white)
-        }
-    }
-
-    private var usesDarkNumber: Bool {
-        tint == .white && clampedLevel >= 0.5
-    }
-
-    private var numberColor: Color {
-        usesDarkNumber ? .black : .white
-    }
-
-    private var numberShadow: Color {
-        usesDarkNumber ? .white.opacity(0.7) : .black.opacity(0.7)
-    }
-
-    private var innerWidth: CGFloat {
-        max(0, bodyWidth - inset * 2)
-    }
-
-    private var innerHeight: CGFloat {
-        max(0, bodyHeight - inset * 2)
+    private var bodyShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: bodyCornerRadius, style: .continuous)
     }
 
     var body: some View {
         HStack(spacing: capSpacing) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 3.6, style: .continuous)
-                    .strokeBorder(statusColor.opacity(0.9), lineWidth: 1.2)
+            bodyLayers
+                .compositingGroup()
+                .mask {
+                    ZStack {
+                        Rectangle().fill(.white)
 
-                HStack(spacing: 0) {
-                    RoundedRectangle(cornerRadius: 1.9, style: .continuous)
-                        .fill(fillStyle)
-                        .frame(width: innerWidth * clampedLevel)
-                    Spacer(minLength: 0)
+                        if showsNumber || isCharging {
+                            glyphContent
+                                .opacity(0.9)
+                                .blendMode(.destinationOut)
+                        }
+                    }
+                    .compositingGroup()
                 }
-                .frame(width: innerWidth, height: innerHeight, alignment: .leading)
-                .padding(inset)
-
-                if isCharging && !showsNumber {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(numberColor)
-                        .shadow(color: numberShadow, radius: 0.8)
-                }
-
-                if showsNumber {
-                    Text("\(Int((clampedLevel * 100).rounded()))")
-                        .font(.system(size: 8.5, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(numberColor)
-                        .shadow(color: numberShadow, radius: 0.8)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
-                        .padding(.horizontal, 1.5)
-                }
-            }
-            .frame(width: bodyWidth, height: bodyHeight)
 
             Capsule()
-                .fill(statusColor.opacity(0.9))
-                .frame(width: 2.2, height: bodyHeight * 0.38)
+                .fill(underlayColor)
+                .frame(width: capWidth, height: bodyHeight * 0.38)
         }
         .accessibilityHidden(true)
+    }
+
+    private var bodyLayers: some View {
+        ZStack {
+            bodyShape
+                .fill(underlayColor)
+
+            Rectangle()
+                .fill(fillColor)
+                .frame(width: bodyWidth * clampedLevel, height: bodyHeight)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(width: bodyWidth, height: bodyHeight)
+        .clipShape(bodyShape)
+    }
+
+    private var glyphContent: some View {
+        HStack(spacing: 1.2) {
+            if showsNumber {
+                Text("\(displayedPercent)")
+                    .font(.system(size: 9.2, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+
+            if isCharging {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 7.4, weight: .bold))
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 1)
     }
 }
