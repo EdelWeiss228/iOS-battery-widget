@@ -120,14 +120,16 @@ private struct MenuBarBatteryGlyph: View {
 
     private let bodyHeight: CGFloat = 15
     private let capSpacing: CGFloat = 1.3
-    private let capWidth: CGFloat = 2.4
+    private let capWidth: CGFloat = 2.3
 
     private var bodyWidth: CGFloat {
-        27
+        // The system body is a touch narrower when it contains just the
+        // percentage. Keep a little extra room for three digits plus the bolt.
+        showsNumber && isCharging ? 27 : 26
     }
 
     private var bodyCornerRadius: CGFloat {
-        4.8
+        5.2
     }
 
     private var clampedLevel: Double {
