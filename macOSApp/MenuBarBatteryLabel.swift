@@ -1,4 +1,5 @@
 import AppKit
+import CoreText
 import SwiftUI
 
 // MARK: - Menu-bar label
@@ -118,18 +119,18 @@ private struct MenuBarBatteryGlyph: View {
     let showsNumber: Bool
     let tint: MenuBarBatteryTint
 
-    private let bodyHeight: CGFloat = 15
-    private let capSpacing: CGFloat = 1.3
-    private let capWidth: CGFloat = 2.3
+    private let bodyHeight: CGFloat = 12
+    private let capSpacing: CGFloat = 1.0
+    private let capWidth: CGFloat = 1.5
 
     private var bodyWidth: CGFloat {
-        // The system body is a touch narrower when it contains just the
-        // percentage. Keep a little extra room for three digits plus the bolt.
-        showsNumber && isCharging ? 27 : 26
+        // The system body is 23 × 12 pt (46 × 24 px at 2×). Only three
+        // digits plus the bolt need the extra room.
+        showsNumber && isCharging && displayedPercent >= 100 ? 27 : 23
     }
 
     private var bodyCornerRadius: CGFloat {
-        5.2
+        4.0
     }
 
     private var clampedLevel: Double {
@@ -148,6 +149,12 @@ private struct MenuBarBatteryGlyph: View {
         Color.white.opacity(0.45)
     }
 
+    /// The cap is part of the empty battery, not the charged fill. The system
+    /// renders it at roughly 55 % white, a touch lighter than the body underlay.
+    private var capColor: Color {
+        Color.white.opacity(0.55)
+    }
+
     private var fillColor: Color {
         if BatteryColors.isLow(clampedLevel) {
             return BatteryColors.systemRed
@@ -155,7 +162,7 @@ private struct MenuBarBatteryGlyph: View {
 
         switch tint {
         case .white:
-            return Color(hex: "F5F6F7")
+            return Color(hex: "F5F7FA")
         case .green:
             return BatteryColors.systemGreen
         }
@@ -183,8 +190,8 @@ private struct MenuBarBatteryGlyph: View {
                 }
 
             Capsule()
-                .fill(fillColor)
-                .frame(width: capWidth, height: bodyHeight * 0.40)
+                .fill(capColor)
+                .frame(width: capWidth, height: bodyHeight / 3)
         }
         .accessibilityHidden(true)
     }
@@ -203,22 +210,53 @@ private struct MenuBarBatteryGlyph: View {
         .clipShape(bodyShape)
     }
 
+    /// The system uses the variable SF NS face for the menu-bar figures. Its
+    /// default `.system` instance is too heavy and a little too wide against
+    /// the battery: the system's digits are 15 px tall and sit between
+    /// Regular and Medium in weight. A 420 weight at 96 % width matches the
+    /// system's glyph boxes and ink distribution at every percentage.
+    private var numberFont: Font {
+        let size: CGFloat = 10.2
+        let axes: [NSNumber: NSNumber] = [
+            // Optical Size -> 17, matching the system's smallest optical size.
+            NSNumber(value: 1869640570): 17,
+            // Weight -> 420, between Regular (400) and .medium (510).
+            NSNumber(value: 2003265652): 420,
+            // Width -> 96 %, matching the system's slightly narrower figures.
+            NSNumber(value: 2003072104): 96,
+        ]
+        let base = NSFont.systemFont(ofSize: size, weight: .medium)
+        let descriptor = base.fontDescriptor.addingAttributes([.variation: axes])
+        let ctFont = CTFontCreateWithFontDescriptor(
+            descriptor as CTFontDescriptor,
+            size,
+            nil
+        )
+        return Font(ctFont)
+    }
+
     private var glyphContent: some View {
-        HStack(spacing: 1.2) {
+        // The menu-bar figures are proportional SF Pro, not SF Rounded: at
+        // 100 % the system zeros are 10 px wide at 2×, while SF Rounded makes
+        // them 12 px. The negative spacing makes up for the SF Symbol side
+        // bearing so the bolt sits the same distance from the last digit as
+        // it does in the system battery. A half-point shift centres the pair.
+        HStack(spacing: -1.5) {
             if showsNumber {
                 Text("\(displayedPercent)")
-                    .font(.system(size: 10.2, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
+                    .font(numberFont)
+                    .fixedSize()
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
             }
 
             if isCharging {
                 Image(systemName: "bolt.fill")
-                    .font(.system(size: 7.4, weight: .bold))
+                    .font(.system(size: 6.7, weight: .semibold))
+                    .offset(x: showsNumber ? 0.5 : 0)
             }
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 1)
+        .offset(x: showsNumber && isCharging ? 0.5 : 0)
     }
 }
