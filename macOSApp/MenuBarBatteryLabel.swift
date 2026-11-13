@@ -12,17 +12,65 @@ struct MenuBarStatusLabel: View {
     private var mode: MenuBarDisplayMode = .iconAndPercent
     @AppStorage(MenuBarBatteryTint.storageKey)
     private var tint: MenuBarBatteryTint = .white
-
-    let level: Double
-    let isCharging: Bool
+    @StateObject private var monitor = MenuBarBatteryMonitor()
 
     var body: some View {
         MenuBarBatteryLabel(
-            level: level,
-            isCharging: isCharging,
+            level: monitor.level,
+            isCharging: monitor.isCharging,
             mode: mode,
             tint: tint
         )
+    }
+}
+
+/// Keeps only the menu-bar icon in step with the system battery. This monitor
+/// is deliberately separate from `MacBatteryViewModel`: a one-second local
+/// IOKit read must not trigger accessory probes, Keychain/cloud sync, shared
+/// defaults writes, or WidgetKit reloads. Publishing only on a displayed
+/// change keeps the status item from re-rendering every second.
+@MainActor
+private final class MenuBarBatteryMonitor: ObservableObject {
+    @Published private(set) var level: Double
+    @Published private(set) var isCharging: Bool
+
+    private var refreshTask: Task<Void, Never>?
+    private var displayedPercent: Int
+
+    init() {
+        let initialLevel = Self.readLevel()
+        let initialState = IOKitBatteryReader.readBatteryState()
+        level = initialLevel
+        isCharging = initialState.isCharging
+        displayedPercent = Int((initialLevel * 100).rounded())
+
+        refreshTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard let self else { return }
+                self.tick()
+            }
+        }
+    }
+
+    private func tick() {
+        let newLevel = Self.readLevel()
+        let newCharging = IOKitBatteryReader.readBatteryState().isCharging
+        let newPercent = Int((newLevel * 100).rounded())
+
+        guard newPercent != displayedPercent || newCharging != isCharging else {
+            return
+        }
+
+        level = newLevel
+        isCharging = newCharging
+        displayedPercent = newPercent
+    }
+
+    private static func readLevel() -> Double {
+        let raw = IOKitBatteryReader.readBatteryLevel()
+        guard raw.isFinite else { return 0 }
+        return min(max(raw, 0), 1)
     }
 }
 

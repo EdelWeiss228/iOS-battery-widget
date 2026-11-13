@@ -31,10 +31,7 @@ struct BatteryMacApp: App {
             MenuBarContentView()
                 .environmentObject(vm)
         } label: {
-            MenuBarStatusLabel(
-                level: vm.primaryDevice.batteryLevel,
-                isCharging: vm.primaryDevice.batteryState.isCharging
-            )
+            MenuBarStatusLabel()
         }
         .menuBarExtraStyle(.window)
 
