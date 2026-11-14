@@ -170,6 +170,9 @@ private struct MenuBarBatteryGlyph: View {
     private let bodyHeight: CGFloat = 12
     private let capSpacing: CGFloat = 1.0
     private let capWidth: CGFloat = 1.5
+    private let largeBoltSize = CGSize(width: 9, height: 13.25)
+    private let largeBoltStrokeWidth: CGFloat = 2.6
+    private let largeBoltOffset: CGFloat = 1.0
 
     private var bodyWidth: CGFloat {
         // The system body is 23 × 12 pt (46 × 24 px at 2×). Only three
@@ -220,22 +223,39 @@ private struct MenuBarBatteryGlyph: View {
         RoundedRectangle(cornerRadius: bodyCornerRadius, style: .continuous)
     }
 
+    /// macOS 27 draws a battery without digits as a large solid bolt separated
+    /// from the body by a transparent gap. The numbered variant keeps the
+    /// small solid `bolt.fill` next to the figures.
+    private var usesLargeChargingBolt: Bool {
+        isCharging && !showsNumber
+    }
+
     var body: some View {
         HStack(spacing: capSpacing) {
-            bodyLayers
-                .compositingGroup()
-                .mask {
-                    ZStack {
-                        Rectangle().fill(.white)
-
-                        if showsNumber || isCharging {
-                            glyphContent
-                                .opacity(0.9)
-                                .blendMode(.destinationOut)
-                        }
-                    }
+            ZStack {
+                bodyLayers
                     .compositingGroup()
+                    .mask {
+                        ZStack {
+                            Rectangle().fill(.white)
+
+                            if showsNumber || isCharging {
+                                glyphContent
+                                    // The system's large bolt is a full
+                                    // knockout; the small digit/bolt engraving
+                                    // is slightly softened.
+                                    .opacity(usesLargeChargingBolt ? 1 : 0.9)
+                                    .blendMode(.destinationOut)
+                            }
+                        }
+                        .compositingGroup()
+                    }
+
+                if usesLargeChargingBolt {
+                    largeChargingBoltFill
                 }
+            }
+            .frame(width: bodyWidth, height: bodyHeight)
 
             Capsule()
                 .fill(capColor)
@@ -283,28 +303,96 @@ private struct MenuBarBatteryGlyph: View {
         return Font(ctFont)
     }
 
-    private var glyphContent: some View {
-        // The menu-bar figures are proportional SF Pro, not SF Rounded: at
-        // 100 % the system zeros are 10 px wide at 2×, while SF Rounded makes
-        // them 12 px. The negative spacing makes up for the SF Symbol side
-        // bearing so the bolt sits the same distance from the last digit as
-        // it does in the system battery. A half-point shift centres the pair.
-        HStack(spacing: -1.5) {
-            if showsNumber {
-                Text("\(displayedPercent)")
-                    .font(numberFont)
-                    .fixedSize()
-                    .lineLimit(1)
-            }
+    /// The solid foreground bolt that sits inside the transparent gap. It is
+    /// drawn over the body so its tips can protrude by half a point, exactly
+    /// like the system icon.
+    private var largeChargingBoltFill: some View {
+        BoltShape()
+            .fill(fillColor)
+            .frame(width: largeBoltSize.width, height: largeBoltSize.height)
+            .offset(x: largeBoltOffset)
+    }
 
-            if isCharging {
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 6.7, weight: .semibold))
-                    .offset(x: showsNumber ? 0.5 : 0)
+    @ViewBuilder
+    private var glyphContent: some View {
+        if usesLargeChargingBolt {
+            // The system bolt is a solid foreground shape with a transparent
+            // gap around it. The gap is the outer half of this stroke: the
+            // white fill below covers the inner half.
+            BoltShape()
+                .stroke(
+                    style: StrokeStyle(
+                        lineWidth: largeBoltStrokeWidth,
+                        lineJoin: .round
+                    )
+                )
+                .frame(width: largeBoltSize.width, height: largeBoltSize.height)
+                .offset(x: largeBoltOffset)
+                .foregroundStyle(.white)
+        } else {
+            // The menu-bar figures are proportional SF Pro, not SF Rounded:
+            // at 100 % the system zeros are 10 px wide at 2×, while SF Rounded
+            // makes them 12 px. The negative spacing makes up for the SF
+            // Symbol side bearing so the bolt sits the same distance from the
+            // last digit as it does in the system battery. A half-point shift
+            // centres the pair.
+            HStack(spacing: -1.5) {
+                if showsNumber {
+                    Text("\(displayedPercent)")
+                        .font(numberFont)
+                        .fixedSize()
+                        .lineLimit(1)
+                }
+
+                if isCharging {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 6.7, weight: .semibold))
+                        .offset(x: showsNumber ? 0.5 : 0)
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 1)
+            .offset(x: showsNumber && isCharging ? 0.5 : 0)
+        }
+    }
+}
+
+// MARK: - Bolt path
+
+/// Outline of the SF Symbols `bolt` glyph, normalised to its 206 × 328 px
+/// bounding box. macOS 27 uses the bolt as a solid shape separated from the
+/// battery body by a transparent gap, so the glyph is rebuilt as a path and
+/// stroked at the exact gap width instead of being scaled as an image.
+private struct BoltShape: Shape {
+    private static let points: [(CGFloat, CGFloat)] = [
+        (0.709, 0.000),
+        (0.752, 0.012),
+        (0.757, 0.052),
+        (0.544, 0.396),
+        (0.961, 0.399),
+        (0.995, 0.439),
+        (0.320, 0.988),
+        (0.233, 0.960),
+        (0.451, 0.601),
+        (0.034, 0.598),
+        (0.000, 0.561),
+        (0.650, 0.027),
+    ]
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        for (index, point) in Self.points.enumerated() {
+            let scaled = CGPoint(
+                x: rect.minX + point.0 * rect.width,
+                y: rect.minY + point.1 * rect.height
+            )
+            if index == 0 {
+                path.move(to: scaled)
+            } else {
+                path.addLine(to: scaled)
             }
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 1)
-        .offset(x: showsNumber && isCharging ? 0.5 : 0)
+        path.closeSubpath()
+        return path
     }
 }
