@@ -64,20 +64,18 @@ final class MacBatteryViewModel: ObservableObject {
     }
 
     var allDevices: [DeviceBatteryInfo] {
-        // The Mac is the only device that can read its Bluetooth accessories.
-        // Do not keep an accessory from the cloud in the Mac widget after it
-        // has disconnected: only currently reported accessories are valid here.
-        let connectedAccessoryIDs = Set(accessoryDevices.map(\.id))
+        // Accessories can be read by either device: the Mac reads its own
+        // headsets, while the iPhone reads the CMF watch over its proprietary
+        // channel. A fresh, valid cloud record is trustworthy no matter which
+        // device produced it. Tombstones and stale records stay hidden.
         let visibleRemoteDevices = remoteDevices.filter { device in
             switch device.deviceType {
             case .mac, .iPhone:
                 return true
             case .airPods, .appleWatch, .other:
-                // Ignore an invalid cloud zero while this Mac has a real
-                // reading for the same accessory.
-                return connectedAccessoryIDs.contains(device.id)
-                    && device.hasBatteryReading
+                return device.hasBatteryReading
                     && device.batteryLevel > 0.001
+                    && !device.isStale
             }
         }
 
@@ -156,9 +154,13 @@ final class MacBatteryViewModel: ObservableObject {
     private func applyAccessories(_ readings: [DeviceBatteryInfo]) {
         // Only a positive value from the Mac's Bluetooth reader is a real
         // reading. Connected-but-unreadable accessories are handled like
-        // disconnected ones below.
+        // disconnected ones below. The CMF watch is excluded because its
+        // standard Battery Service is a constant 100 % placeholder; its real
+        // level is read by the iPhone and arrives through the cloud.
         let devices = readings.filter {
-            $0.hasBatteryReading && $0.batteryLevel > 0.001
+            $0.hasBatteryReading
+                && $0.batteryLevel > 0.001
+                && !$0.deviceName.localizedCaseInsensitiveContains("CMF Watch")
         }
         let connectedIDs = Set(devices.map(\.id))
 

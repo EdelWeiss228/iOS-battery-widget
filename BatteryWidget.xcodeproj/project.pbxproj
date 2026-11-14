@@ -41,6 +41,7 @@
 		E567CDF907968A327D95803E /* BatteryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8533FB6BB84F703EFE180CBC /* BatteryData.swift */; };
 		E842325FA3893534DB307481 /* BatteryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7DEF75CD35CA8E2D303E8C8 /* BatteryStore.swift */; };
 		EAE32118CDD9653A43252226 /* MacBatteryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C35F5B67FC243B425534F3 /* MacBatteryWidget.swift */; };
+		EE7F37CFA1BDF4E8D52FBA40 /* CMFWatchBatteryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74511D2281D7781F659CB31 /* CMFWatchBatteryReader.swift */; };
 		F2073403F0A9A9E17E8A3490 /* IOKitBatteryReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE217F5CDE2CC6642640896 /* IOKitBatteryReader.swift */; };
 		F551195ACDB183DA08FE69B4 /* BatteryColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316B5F0889E1F1E15ABF24AA /* BatteryColors.swift */; };
 		FAE09DB0F87EBC62438C3327 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84874EB0E35D99035156036 /* ContentView.swift */; };
@@ -119,6 +120,7 @@
 		DF5F5CEF4F30678CA19F6C9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F0CE4500CEA44074E001A711 /* BatterySyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySyncManager.swift; sourceTree = "<group>"; };
 		F6673C4F1562B5D624D5C242 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F74511D2281D7781F659CB31 /* CMFWatchBatteryReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMFWatchBatteryReader.swift; sourceTree = "<group>"; };
 		F7DEF75CD35CA8E2D303E8C8 /* BatteryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -201,6 +203,7 @@
 				DA603869AFACD4426A45E17E /* BatteryViewModel.swift */,
 				C3FB5BD72BE271ABF346E209 /* BatteryWidgetApp.entitlements */,
 				B420F828032DC59F9ED2ED9A /* BatteryWidgetApp.swift */,
+				F74511D2281D7781F659CB31 /* CMFWatchBatteryReader.swift */,
 				A84874EB0E35D99035156036 /* ContentView.swift */,
 				C9F00C18E429C5D923A06A2F /* Info.plist */,
 			);
@@ -364,6 +367,7 @@
 				E01F59E93713587096AEC617 /* BatteryViewModel.swift in Sources */,
 				76320D2C2E11AAF4EA6C7158 /* BatteryWidgetApp.swift in Sources */,
 				84FC92EBF2C888B82B924362 /* BonjourSyncManager.swift in Sources */,
+				EE7F37CFA1BDF4E8D52FBA40 /* CMFWatchBatteryReader.swift in Sources */,
 				FAE09DB0F87EBC62438C3327 /* ContentView.swift in Sources */,
 				6332AB922BB3DC0A65B8C6A5 /* IOKitBatteryReader.swift in Sources */,
 			);

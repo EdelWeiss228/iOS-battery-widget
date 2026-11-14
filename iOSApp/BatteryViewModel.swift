@@ -29,7 +29,18 @@ final class BatteryViewModel: ObservableObject {
 
         BatterySyncManager.shared.start(localInfo: localDevice)
         saveToSharedDefaults()
+        CMFWatchBatteryMonitor.shared.start()
         refreshAccessories()
+
+        CMFWatchBatteryMonitor.shared.$watch
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshAccessories() }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+            .receive(on: RunLoop.main)
+            .sink { _ in CMFWatchBatteryMonitor.shared.refreshIfNeeded() }
+            .store(in: &cancellables)
 
         BatterySyncManager.shared.$remoteDevices
             .receive(on: RunLoop.main)
@@ -72,11 +83,23 @@ final class BatteryViewModel: ObservableObject {
     private func refreshAccessories() {
         let batteryCenterDevices = BatteryCenterReader.connectedDevices()
         let managerDevices = BluetoothBatteryReader.connectedDevices()
+        // The system reports the CMF watch from its placeholder Battery
+        // Service, which is always 100 %. The real value comes from
+        // CMFWatchBatteryMonitor; never publish the system entry.
+        let systemDevices = BatterySharedStore
+            .deduplicated(batteryCenterDevices + managerDevices)
+            .filter { !BatteryViewModel.isCMFWatchSystemEntry($0) }
+
+        var candidates = systemDevices
+        if let watch = CMFWatchBatteryMonitor.shared.watch {
+            candidates.append(watch)
+        }
+
         // Never publish an accessory without a real reading. iOS can see a
         // paired headset as connected but report 0 when it cannot read its
         // battery; publishing that zero would overwrite the Mac relay.
         let devices = BatterySharedStore
-            .deduplicated(batteryCenterDevices + managerDevices)
+            .deduplicated(candidates)
             .filter { $0.hasBatteryReading && $0.batteryLevel > 0.001 }
         accessoryDevices = devices
         print("BatteryWidget accessories:", devices.map { "\($0.deviceName)=\($0.levelPercent)% (\($0.id))" })
@@ -88,6 +111,10 @@ final class BatteryViewModel: ObservableObject {
         BatterySyncManager.shared.refreshCloud()
         saveToSharedDefaults()
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    private static func isCMFWatchSystemEntry(_ device: DeviceBatteryInfo) -> Bool {
+        device.deviceName.localizedCaseInsensitiveContains("CMF Watch")
     }
 
     var allDevices: [DeviceBatteryInfo] {
